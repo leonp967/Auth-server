@@ -1,0 +1,23 @@
+{
+  "name": "auth-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": "https://github.com/leonp967/Auth-server.git"
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^1.18.11"
+  },
+  "dependencies": {
+    "express": "^4.16.4",
+    "fabric-ca-client": "^1.4.1",
+    "fabric-client": "^1.4.1",
+    "mongoose": "^5.5.2",
+    "randomstring": "^1.1.5"
+  }
+}
