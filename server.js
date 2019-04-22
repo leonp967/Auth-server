@@ -20,4 +20,4 @@ app.listen(port);
 authController.init();
 
 
-console.log('todo list RESTful API server started on: ' + port);
+console.log('Auth Server started on: ' + port);

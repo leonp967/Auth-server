@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js"
   },
-  "repository": "https://github.com/leonp967/Auth-server.git"
+  "repository": "https://github.com/leonp967/Auth-server.git",
   "author": "",
   "license": "ISC",
   "devDependencies": {
