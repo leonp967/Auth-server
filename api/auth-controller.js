@@ -73,10 +73,8 @@ exports.createUser = function(req, res) {
 };
 
 exports.login = function(req, res){
-    console.log(req.body.email);
     wallet.exists(req.body.email)
     .then((exist) => {
-        console.log(exist);
         if (exist) {
             User.findOne({email: req.body.email}, function(err, response){
                 if(err)
@@ -84,12 +82,10 @@ exports.login = function(req, res){
                 var key = decryptRSA(response.key, pathLib.join(__dirname, './keys/private.pem'), 'senha');
                 var password = decryptAES(response.password, key);
                 if(password == req.body.password){
-                    console.log('top');
                     res.status(200).json({
                         message: 'Login successful!'
                     });
                 } else{
-                    console.log('nao top');
                     res.status(400).json({
                         message: 'Invalid credentials!'
                     });
