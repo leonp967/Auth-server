@@ -38,7 +38,7 @@ exports.init = async function(){
 exports.createUser = function(req, res) {
     var certificate;
     var key;
-    return ca.register({enrollmentID: req.body.email, affiliation: 'org1.department1', role: 'user', enrollmentSecret: req.body.password}, adminIdentity)
+    return ca.register({enrollmentID: req.body.email, affiliation: 'org1.department1', role: 'client', enrollmentSecret: req.body.password}, adminIdentity)
     .then((secret) => {
         return ca.enroll({enrollmentID: req.body.email, enrollmentSecret: secret});
     }).then((enrollment) => {
@@ -83,7 +83,9 @@ exports.login = function(req, res){
                 var password = decryptAES(response.password, key);
                 if(password == req.body.password){
                     res.status(200).json({
-                        message: 'Login successful!'
+                        email: response.email,
+                        cpf: response.cpf,
+                        name: response.name
                     });
                 } else{
                     res.status(400).json({
