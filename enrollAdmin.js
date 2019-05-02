@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
-const ccpPath = path.join(__dirname, '/api/prontuchain-connection', 'config.yaml');
+const ccpPath = path.join(__dirname, '/api/prontuchain-connection/config.yaml');
 const ccpJSON = yaml.safeLoad(fs.readFileSync(ccpPath, 'utf8'));
 
 async function main() {
