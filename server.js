@@ -13,7 +13,6 @@ mongoose.connect('mongodb://localhost/Usersdb', { useNewUrlParser: true });
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-
 var routes = require('./api/auth-routes');
 routes(app);
 app.listen(port);

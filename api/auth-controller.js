@@ -4,19 +4,22 @@ var mongoose = require('mongoose');
 const User = mongoose.model('Users');
 var Fabric_Client = require('fabric-client');
 var Fabric_CA_Client = require('fabric-ca-client');
-var path = require('path');
-var fabric_client = new Fabric_Client();
-var fabric_ca_client = null;
-var admin_user = null;
-var store_path = path.join(__dirname, 'hfc-key-store');
-const CA_URL = 'https://localhost:7054';
+const { FileSystemWallet, X509WalletMixin } = require('fabric-network');
+const pathLib = require('path');
 const generateKey = require('./utils/crypto_utils').generateAESKey;
 const encryptAES = require('./utils/crypto_utils').encryptAES;
 const decryptAES = require('./utils/crypto_utils').decryptAES;
 const encryptRSA = require('./utils/crypto_utils').encryptStringWithRsaPublicKey;
 const decryptRSA = require('./utils/crypto_utils').decryptStringWithRsaPrivateKey;
 
-exports.init = function(){
+var fabric_client = new Fabric_Client();
+var store_path = pathLib.join(__dirname, 'hfc-key-store');
+const CA_URL = 'http://localhost:7054';
+const wallet = new FileSystemWallet(pathLib.join(__dirname, '/wallet'));
+var ca;
+var adminIdentity;
+
+exports.init = async function(){   
     Fabric_Client.newDefaultKeyValueStore({ path: store_path
     }).then((state_store) => {
         fabric_client.setStateStore(state_store);
@@ -24,11 +27,10 @@ exports.init = function(){
         var crypto_store = Fabric_Client.newCryptoKeyStore({path: store_path});
         crypto_suite.setCryptoKeyStore(crypto_store);
         fabric_client.setCryptoSuite(crypto_suite);
-        fabric_ca_client = new Fabric_CA_Client(CA_URL, null , '', crypto_suite);
-    
-        admin_user = fabric_client.getUserContext('admin', true)
+        ca = new Fabric_CA_Client(CA_URL);
+        fabric_client.getUserContext('admin', true)
         .then((user) => {
-            admin_user = user;
+            adminIdentity = user;
         })
     });
 }
@@ -36,24 +38,20 @@ exports.init = function(){
 exports.createUser = function(req, res) {
     var certificate;
     var key;
-    console.log(req.body);
-    return fabric_ca_client.register({enrollmentID: req.body.email, affiliation: 'org1.department1', role: 'user', enrollmentSecret: req.body.password}, admin_user)
+    return ca.register({enrollmentID: req.body.email, affiliation: 'org1.department1', role: 'user', enrollmentSecret: req.body.password}, adminIdentity)
     .then((secret) => {
-        return fabric_ca_client.enroll({enrollmentID: req.body.email, enrollmentSecret: secret});
+        return ca.enroll({enrollmentID: req.body.email, enrollmentSecret: secret});
     }).then((enrollment) => {
         certificate = enrollment.certificate;
         key = enrollment.key.toBytes();
-        return fabric_client.createUser(
-            {username: req.body.email,
-            mspid: 'Org1MSP',
-            cryptoContent: { privateKeyPEM: enrollment.key.toBytes(), signedCertPEM: enrollment.certificate }
-            });
-    }).then((user) => {
+        const userIdentity = X509WalletMixin.createIdentity('Org1MSP', enrollment.certificate, enrollment.key.toBytes());
+        return wallet.import(req.body.email, userIdentity);
+    }).then(() => {
         var keyString = generateKey();
-        var cryptedKey = encryptRSA(keyString, path.join(__dirname, './keys/public.pem'));
+        var cryptedKey = encryptRSA(keyString, pathLib.join(__dirname, './keys/public.pem'));
         var user = new User({
            email: req.body.email,
-           password: encryptAES(req.body.password, key),
+           password: encryptAES(req.body.password, keyString),
            name: req.body.name,
            cpf: req.body.cpf,
            key: cryptedKey
@@ -67,6 +65,7 @@ exports.createUser = function(req, res) {
             });
         });
     }).catch((err) => {
+        console.log(err);
         res.status(500).json({
             message: "Error: " + err
         })
@@ -74,26 +73,35 @@ exports.createUser = function(req, res) {
 };
 
 exports.login = function(req, res){
-    fabric_client.getUserContext(req.body.email, true)
-    .then((user) => {
-        if (user && user.isEnrolled()) {
+    console.log(req.body.email);
+    wallet.exists(req.body.email)
+    .then((exist) => {
+        console.log(exist);
+        if (exist) {
             User.findOne({email: req.body.email}, function(err, response){
                 if(err)
                     res.send(err);
-                var key = decryptRSA(response.key, path.join(__dirname, './keys/private.pem'), 'senha');
+                var key = decryptRSA(response.key, pathLib.join(__dirname, './keys/private.pem'), 'senha');
                 var password = decryptAES(response.password, key);
                 if(password == req.body.password){
+                    console.log('top');
                     res.status(200).json({
                         message: 'Login successful!'
                     });
                 } else{
+                    console.log('nao top');
                     res.status(400).json({
                         message: 'Invalid credentials!'
                     });
                 }
             });
+        } else{
+            res.status(400).json({
+                message: 'Invalid credentials!'
+            });
         }
     }).catch((error) => {
+        console.log(error);
         res.status(500).json({
             message: "Error: " + error
         })

@@ -1,0 +1,104 @@
+name: mychannel.firstnetwork.connectionprofile
+x-type: "hlfv1"
+description: ""
+version: "1.0"
+
+client:
+    organization: Org1
+    connection:
+        timeout:
+            peer:
+                endorser: '300'
+            orderer: '300'
+
+    credentialStore:
+      path: "/home/leonardo/.composer-credentials"
+      cryptoStore:
+        path: "/home/leonardo/.composer-credentials"
+      wallet: "../wallet"
+
+channels:
+  prontuchain:
+    orderers:
+      - orderer.example.com
+    peers:
+      peer0.org1.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+      peer1.org1.example.com:
+        endorsingPeer: false
+        chaincodeQuery: false
+        ledgerQuery: true
+        eventSource: true
+      peer0.org2.example.com:
+        endorsingPeer: false
+        chaincodeQuery: false
+        ledgerQuery: true
+        eventSource: true
+      peer1.org2.example.com:
+        endorsingPeer: false
+        chaincodeQuery: false
+        ledgerQuery: true
+        eventSource: true
+
+organizations:
+  Org1:
+    mspid: Org1MSP
+    peers:
+      - peer0.org1.example.com
+      - peer1.org1.example.com
+    certificateAuthorities:
+      - ca.example.com
+    
+  Org2:
+    mspid: Org2MSP
+    peers:
+      - peer0.org2.example.com
+      - peer1.org2.example.com
+    certificateAuthorities:
+      - ca.example.com
+    
+
+orderers:
+  orderer.example.com:
+    url: grpcs://localhost:7050
+    grpcOptions:
+      ssl-target-name-override: orderer.example.com
+
+peers:
+  peer0.org1.example.com:
+    url: grpcs://localhost:7051
+    grpcOptions:
+      ssl-target-name-override: peer0.org1.example.com
+      request-timeout: 120001
+
+  peer1.org1.example.com:
+    url: grpcs://localhost:8051
+    grpcOptions:
+      ssl-target-name-override: peer1.org1.example.com
+      request-timeout: 120001
+
+  peer0.org2.example.com:
+    url: grpcs://localhost:9051
+    grpcOptions:
+      ssl-target-name-override: peer0.org2.example.com
+      request-timeout: 120001
+
+  peer1.org2.example.com:
+    url: grpcs://localhost:10051
+    grpcOptions:
+      ssl-target-name-override: peer1.org2.example.com
+      request-timeout: 120001
+
+  certificateAuthorities:
+    ca.example.com:
+      url: http://localhost:7054
+      httpOptions:
+        verify: false
+      registrar:
+        enrollId: admin
+        enrollSecret: adminpw
+
+      caName: ca.example.com
