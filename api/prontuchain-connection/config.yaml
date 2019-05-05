@@ -1,0 +1,110 @@
+name: mychannel.firstnetwork.connectionprofile
+x-type: "hlfv1"
+description: ""
+version: "1.0"
+
+channels:
+  prontuchain:
+    orderers:
+      - orderer.example.com
+    peers:
+      peer0.org1.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+      peer1.org1.example.com:
+        endorsingPeer: false
+        chaincodeQuery: false
+        ledgerQuery: true
+        eventSource: true
+      peer0.org2.example.com:
+        endorsingPeer: false
+        chaincodeQuery: false
+        ledgerQuery: true
+        eventSource: true
+      peer1.org2.example.com:
+        endorsingPeer: false
+        chaincodeQuery: false
+        ledgerQuery: true
+        eventSource: true
+
+organizations:
+  Org1:
+    mspid: Org1MSP
+    peers:
+      - peer0.org1.example.com
+      - peer1.org1.example.com
+    certificateAuthorities:
+      - ca.example.com
+    adminPrivateKey:
+      path: backend/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/05bd832ff08bd1e3a6a7de88d5c0947f247f130cd37811012674293bb06ba3c3_sk
+    signedCert:
+      path: backend/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem
+
+  Org2:
+    mspid: Org2MSP
+    peers:
+      - peer0.org2.example.com
+      - peer1.org2.example.com
+    certificateAuthorities:
+      - ca.example.com
+    adminPrivateKey:
+      path: backend/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/keystore/10568c65515daeedce40ab489726e8cdba32032600c7bd78ec273974774a5044_sk
+    signedCert:
+      path: backend/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/signcerts/Admin@org2.example.com-cert.pem
+
+orderers:
+  orderer.example.com:
+    url: grpcs://localhost:7050
+    grpcOptions:
+      ssl-target-name-override: orderer.example.com
+    tlsCACerts:
+      path: backend/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+
+peers:
+  peer0.org1.example.com:
+    url: grpcs://localhost:7051
+    grpcOptions:
+      ssl-target-name-override: peer0.org1.example.com
+      request-timeout: 120001
+    tlsCACerts:
+      path: backend/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp/tlscacerts/tlsca.org1.example.com-cert.pem
+
+  peer1.org1.example.com:
+    url: grpcs://localhost:8051
+    grpcOptions:
+      ssl-target-name-override: peer1.org1.example.com
+      request-timeout: 120001
+    tlsCACerts:
+      path: backend/crypto-config/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/msp/tlscacerts/tlsca.org1.example.com-cert.pem
+
+  peer0.org2.example.com:
+    url: grpcs://localhost:9051
+    grpcOptions:
+      ssl-target-name-override: peer0.org2.example.com
+      request-timeout: 120001
+    tlsCACerts:
+      path: backend/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp/tlscacerts/tlsca.org2.example.com-cert.pem
+
+  peer1.org2.example.com:
+    url: grpcs://localhost:10051
+    grpcOptions:
+      ssl-target-name-override: peer1.org2.example.com
+      request-timeout: 120001
+    tlsCACerts:
+      path: backend/crypto-config/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/msp/tlscacerts/tlsca.org2.example.com-cert.pem
+
+  certificateAuthorities:
+    ca.example.com:
+
+      url: http://localhost:7054
+
+      httpOptions:
+        verify: false
+
+      registrar:
+        enrollId: admin
+        enrollSecret: adminpw
+
+      caName: ca.example.com
