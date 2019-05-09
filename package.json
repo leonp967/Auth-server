@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "sudo service mongod start && nodemon server.js"
   },
   "repository": "https://github.com/leonp967/Auth-server.git",
   "author": "",
