@@ -7,7 +7,7 @@ var express = require('express'),
   authController = require('./api/auth-controller');
   
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/Usersdb', { useNewUrlParser: true }); 
+mongoose.connect('mongodb://heroku_twtlc8cz:ijusuh34j5nnpdd9cdunk5l8kc@ds145128.mlab.com:45128/heroku_twtlc8cz', { useNewUrlParser: true }); 
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
