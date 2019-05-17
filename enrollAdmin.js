@@ -18,7 +18,7 @@ async function main() {
 
         // Create a new CA client for interacting with the CA.
         //const caURL = ccp.certificateAuthorities['ca.example.com'].url;
-        const ca = new FabricCAServices('http://localhost:7054');
+        const ca = new FabricCAServices('http://serveo.net:7054');
 
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(__dirname, '/api/wallet');
