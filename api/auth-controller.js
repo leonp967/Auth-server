@@ -14,7 +14,7 @@ const decryptRSA = require('./utils/crypto_utils').decryptStringWithRsaPrivateKe
 
 var fabric_client = new Fabric_Client();
 var store_path = pathLib.join(__dirname, 'hfc-key-store');
-const CA_URL = 'http://serveo.net:7054';
+const CA_URL = 'https://35.199.126.237/:7054';
 const wallet = new FileSystemWallet(pathLib.join(__dirname, '/wallet'));
 var ca;
 var adminIdentity;
