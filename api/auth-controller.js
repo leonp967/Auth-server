@@ -38,8 +38,20 @@ exports.init = async function(){
 exports.createUser = function(req, res) {
     var certificate;
     var key;
-    User.findOne({email: req.body.email}, function(err, response){
-
+    User.findOne({$or: [
+        {email: req.body.email},
+        {document: req.body.document}
+    ]}, function(err, user){
+        if (err) {
+            res.status(500).json({
+                message: "Error: " + err
+            })
+        }
+        if (user) {
+            res.status(400).json({
+                message: "A user with this e-mail or document already exists!"
+            })
+        }
     })
     return ca.register({enrollmentID: req.body.email, affiliation: 'org1.department1', role: 'client', enrollmentSecret: req.body.password}, adminIdentity)
     .then((secret) => {
@@ -60,8 +72,10 @@ exports.createUser = function(req, res) {
            key: cryptedKey
         });
         user.save(function(err, user) {
-            if (err)
+            if (err) {
                 res.send(err);
+                return
+            }
             res.status(201).json({
                 key: key,
                 certificate: certificate
@@ -80,8 +94,10 @@ exports.login = function(req, res){
     .then((exist) => {
         if (exist) {
             User.findOne({email: req.body.email}, function(err, response){
-                if(err)
+                if(err){
                     res.send(err);
+                    return;
+                }
                 var key = decryptRSA(response.key, pathLib.join(__dirname, './keys/private.pem'), 'senha');
                 var password = decryptAES(response.password, key);
                 if(password == req.body.password){
@@ -90,17 +106,18 @@ exports.login = function(req, res){
                         document: response.document,
                         name: response.name
                     });
-                } else{
-                    res.status(400).json({
-                        message: 'Invalid credentials!'
-                    });
+                    return
                 }
+                res.status(400).json({
+                    message: 'Invalid credentials!'
+                });
+                return
             });
-        } else{
-            res.status(400).json({
-                message: 'Invalid credentials!'
-            });
-        }
+        } 
+        res.status(400).json({
+            message: 'Invalid credentials!'
+        });
+        return
     }).catch((error) => {
         console.log(error);
         res.status(500).json({
