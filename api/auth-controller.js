@@ -38,6 +38,9 @@ exports.init = async function(){
 exports.createUser = function(req, res) {
     var certificate;
     var key;
+    User.findOne({email: req.body.email}, function(err, response){
+
+    })
     return ca.register({enrollmentID: req.body.email, affiliation: 'org1.department1', role: 'client', enrollmentSecret: req.body.password}, adminIdentity)
     .then((secret) => {
         return ca.enroll({enrollmentID: req.body.email, enrollmentSecret: secret});
@@ -53,7 +56,7 @@ exports.createUser = function(req, res) {
            email: req.body.email,
            password: encryptAES(req.body.password, keyString),
            name: req.body.name,
-           cpf: req.body.cpf,
+           document: req.body.document,
            key: cryptedKey
         });
         user.save(function(err, user) {
@@ -84,7 +87,7 @@ exports.login = function(req, res){
                 if(password == req.body.password){
                     res.status(200).json({
                         email: response.email,
-                        cpf: response.cpf,
+                        document: response.document,
                         name: response.name
                     });
                 } else{
