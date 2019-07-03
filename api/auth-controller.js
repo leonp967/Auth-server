@@ -51,43 +51,46 @@ exports.createUser = function(req, res) {
                 message: "A user with this e-mail or document already exists!"
             })
         }
-    })
-    ca.register({enrollmentID: req.body.email, affiliation: 'org1.department1', role: 'client', enrollmentSecret: req.body.password}, adminIdentity)
-    .then((secret) => {
-        ca.enroll({enrollmentID: req.body.email, enrollmentSecret: secret})
-        .then((enrollment) => {
-            certificate = enrollment.certificate;
-            key = enrollment.key.toBytes();
-            const userIdentity = X509WalletMixin.createIdentity('Org1MSP', enrollment.certificate, enrollment.key.toBytes());
-            wallet.import(req.body.email, userIdentity)
-            .then(() => {
-                var keyString = generateKey();
-                var cryptedKey = encryptRSA(keyString, pathLib.join(__dirname, './keys/public.pem'));
-                var user = new User({
-                    email: req.body.email,
-                    password: encryptAES(req.body.password, keyString),
-                    name: req.body.name,
-                    document: req.body.document,
-                    key: cryptedKey
-                });
-                user.save(function(err, user) {
-                    if (err) {
-                        res.send(err);
-                        return
-                    }
-                    res.status(201).json({
-                        key: key,
-                        certificate: certificate
+    }).then((user) => {
+        if (!user) {
+            ca.register({enrollmentID: req.body.email, affiliation: 'org1.department1', role: 'client', enrollmentSecret: req.body.password}, adminIdentity)
+            .then((secret) => {
+                ca.enroll({enrollmentID: req.body.email, enrollmentSecret: secret})
+                .then((enrollment) => {
+                    certificate = enrollment.certificate;
+                    key = enrollment.key.toBytes();
+                    const userIdentity = X509WalletMixin.createIdentity('Org1MSP', enrollment.certificate, enrollment.key.toBytes());
+                    wallet.import(req.body.email, userIdentity)
+                    .then(() => {
+                        var keyString = generateKey();
+                        var cryptedKey = encryptRSA(keyString, pathLib.join(__dirname, './keys/public.pem'));
+                        var user = new User({
+                            email: req.body.email,
+                            password: encryptAES(req.body.password, keyString),
+                            name: req.body.name,
+                            document: req.body.document,
+                            key: cryptedKey
+                        });
+                        user.save(function(err, user) {
+                            if (err) {
+                                res.send(err);
+                                return
+                            }
+                            res.status(201).json({
+                                key: key,
+                                certificate: certificate
+                            });
+                        });
                     });
                 });
+            }).catch((err) => {
+                console.log(err);
+                res.status(500).json({
+                    message: "Error: " + err
+                })
             });
-        });
-    }).catch((err) => {
-        console.log(err);
-        res.status(500).json({
-            message: "Error: " + err
-        })
-    });
+        }
+    })
 };
 
 exports.login = function(req, res){
