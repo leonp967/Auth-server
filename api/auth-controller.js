@@ -16,7 +16,7 @@ const homedir = require('os').homedir();
 var fabric_client = new Fabric_Client();
 var store_path = pathLib.join(__dirname, 'hfc-key-store');
 const CA_URL = 'http://35.199.126.237:7054';
-const wallet;
+let wallet;
 var ca;
 var adminIdentity;
 
