@@ -11,17 +11,22 @@ const encryptAES = require('./utils/crypto_utils').encryptAES;
 const decryptAES = require('./utils/crypto_utils').decryptAES;
 const encryptRSA = require('./utils/crypto_utils').encryptStringWithRsaPublicKey;
 const decryptRSA = require('./utils/crypto_utils').decryptStringWithRsaPrivateKey;
+const homedir = require('os').homedir();
 
 var fabric_client = new Fabric_Client();
 var store_path = pathLib.join(__dirname, 'hfc-key-store');
 const CA_URL = 'http://35.199.126.237:7054';
-const wallet = new FileSystemWallet(pathLib.join(__dirname, '/wallet'));
+const wallet;
 var ca;
 var adminIdentity;
 
 exports.init = async function(){   
     Fabric_Client.newDefaultKeyValueStore({ path: store_path
     }).then((state_store) => {
+        let dir = pathLib.join(homedir, 'prontuchain/wallet');
+        if (!fs.existsSync(dir))
+            fs.mkdirSync(dir, { recursive: true });
+        wallet = new FileSystemWallet(pathLib.join(homedir, '/prontuchain/wallet'));
         fabric_client.setStateStore(state_store);
         var crypto_suite = Fabric_Client.newCryptoSuite();
         var crypto_store = Fabric_Client.newCryptoKeyStore({path: store_path});
