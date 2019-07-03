@@ -46,39 +46,40 @@ exports.createUser = function(req, res) {
             res.status(500).json({
                 message: "Error: " + err
             })
-        }
-        if (user) {
+        } else if (user) {
             res.status(400).json({
                 message: "A user with this e-mail or document already exists!"
             })
         }
     })
-    return ca.register({enrollmentID: req.body.email, affiliation: 'org1.department1', role: 'client', enrollmentSecret: req.body.password}, adminIdentity)
+    ca.register({enrollmentID: req.body.email, affiliation: 'org1.department1', role: 'client', enrollmentSecret: req.body.password}, adminIdentity)
     .then((secret) => {
-        return ca.enroll({enrollmentID: req.body.email, enrollmentSecret: secret});
-    }).then((enrollment) => {
-        certificate = enrollment.certificate;
-        key = enrollment.key.toBytes();
-        const userIdentity = X509WalletMixin.createIdentity('Org1MSP', enrollment.certificate, enrollment.key.toBytes());
-        return wallet.import(req.body.email, userIdentity);
-    }).then(() => {
-        var keyString = generateKey();
-        var cryptedKey = encryptRSA(keyString, pathLib.join(__dirname, './keys/public.pem'));
-        var user = new User({
-           email: req.body.email,
-           password: encryptAES(req.body.password, keyString),
-           name: req.body.name,
-           document: req.body.document,
-           key: cryptedKey
-        });
-        user.save(function(err, user) {
-            if (err) {
-                res.send(err);
-                return
-            }
-            res.status(201).json({
-                key: key,
-                certificate: certificate
+        ca.enroll({enrollmentID: req.body.email, enrollmentSecret: secret})
+        .then((enrollment) => {
+            certificate = enrollment.certificate;
+            key = enrollment.key.toBytes();
+            const userIdentity = X509WalletMixin.createIdentity('Org1MSP', enrollment.certificate, enrollment.key.toBytes());
+            wallet.import(req.body.email, userIdentity)
+            .then(() => {
+                var keyString = generateKey();
+                var cryptedKey = encryptRSA(keyString, pathLib.join(__dirname, './keys/public.pem'));
+                var user = new User({
+                    email: req.body.email,
+                    password: encryptAES(req.body.password, keyString),
+                    name: req.body.name,
+                    document: req.body.document,
+                    key: cryptedKey
+                });
+                user.save(function(err, user) {
+                    if (err) {
+                        res.send(err);
+                        return
+                    }
+                    res.status(201).json({
+                        key: key,
+                        certificate: certificate
+                    });
+                });
             });
         });
     }).catch((err) => {
@@ -95,31 +96,34 @@ exports.login = function(req, res){
         if (exist) {
             User.findOne({email: req.body.email}, function(err, response){
                 if(err){
-                    res.send(err);
-                    return;
+                    console.dir(err);
+                    res.status(500).json({
+                        message: 'Error ' + err
+                    })
                 }
-                var key = decryptRSA(response.key, pathLib.join(__dirname, './keys/private.pem'), 'senha');
-                var password = decryptAES(response.password, key);
-                if(password == req.body.password){
-                    res.status(200).json({
-                        email: response.email,
-                        document: response.document,
-                        name: response.name
-                    });
-                    return
+                else {
+                    var key = decryptRSA(response.key, pathLib.join(__dirname, './keys/private.pem'), 'senha');
+                    var password = decryptAES(response.password, key);
+                    if(password == req.body.password){
+                        res.status(200).json({
+                            email: response.email,
+                            document: response.document,
+                            name: response.name
+                        });
+                    } else {
+                        res.status(400).json({
+                            message: 'Invalid credentials!'
+                        });
+                    }
                 }
-                res.status(400).json({
-                    message: 'Invalid credentials!'
-                });
-                return
             });
-        } 
-        res.status(400).json({
-            message: 'Invalid credentials!'
-        });
-        return
+        } else {
+            res.status(400).json({
+                message: 'Invalid credentials!'
+            });
+        }
     }).catch((error) => {
-        console.log(error);
+        console.dir(error);
         res.status(500).json({
             message: "Error: " + error
         })
