@@ -12,6 +12,7 @@ const decryptAES = require('./utils/crypto_utils').decryptAES;
 const encryptRSA = require('./utils/crypto_utils').encryptStringWithRsaPublicKey;
 const decryptRSA = require('./utils/crypto_utils').decryptStringWithRsaPrivateKey;
 const homedir = require('os').homedir();
+const fs = require('fs');
 
 var fabric_client = new Fabric_Client();
 var store_path = pathLib.join(__dirname, 'hfc-key-store');
