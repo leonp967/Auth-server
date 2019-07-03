@@ -100,41 +100,32 @@ exports.createUser = function(req, res) {
 };
 
 exports.login = function(req, res){
-    wallet.exists(req.body.email)
-    .then((exist) => {
-        if (exist) {
-            User.findOne({email: req.body.email}, function(err, response){
-                if(err){
-                    console.dir(err);
-                    res.status(500).json({
-                        message: 'Error ' + err
-                    })
-                }
-                else {
-                    var key = decryptRSA(response.key, pathLib.join(__dirname, './keys/private.pem'), 'senha');
-                    var password = decryptAES(response.password, key);
-                    if(password == req.body.password){
-                        res.status(200).json({
-                            email: response.email,
-                            document: response.document,
-                            name: response.name
-                        });
-                    } else {
-                        res.status(400).json({
-                            message: 'Invalid credentials!'
-                        });
-                    }
-                }
-            });
+    User.findOne({email: req.body.email}, function(err, response){
+        if(err){
+            console.dir(err);
+            res.status(500).json({
+                message: 'Error ' + err
+            })
         } else {
-            res.status(401).json({
-                message: 'Invalid credentials!'
-            });
+            if (!response) {
+                res.status(400).json({
+                    message: 'Invalid credentials!'
+                });
+            } else {
+                var key = decryptRSA(response.key, pathLib.join(__dirname, './keys/private.pem'), 'senha');
+                var password = decryptAES(response.password, key);
+                if(password == req.body.password){
+                    res.status(200).json({
+                        email: response.email,
+                        document: response.document,
+                        name: response.name
+                    });
+                } else {
+                    res.status(400).json({
+                        message: 'Invalid credentials!'
+                    });
+                }
+            }
         }
-    }).catch((error) => {
-        console.dir(error);
-        res.status(500).json({
-            message: "Error: " + error
-        })
-    })
+    });
 }
